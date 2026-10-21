@@ -20,7 +20,7 @@ and jump into any of them together. Every GitHub repo is a floor of the building
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey?style=flat-square)](#run-locally)
 [![Built with TypeScript](https://img.shields.io/badge/built%20with-TypeScript-3178c6?style=flat-square)](https://www.typescriptlang.org)
 
-[**Run locally**](#run-locally) · [**Deploy to AWS**](#deploy-to-aws-ec2) · [**Azure**](#deploy-to-azure) · [**Railway**](#deploy-to-railway) · [**Fly.io**](#deploy-to-flyio) · [**Dokploy**](#deploy-to-dokploy) · [**Coolify**](#deploy-to-coolify) · [**Any server**](#deploy-to-any-ubuntu-or-debian-server) · [**Add users**](#add-users) · [**Controls**](#controls) · [**Features**](docs/features.md) · [**How it works**](docs/how-it-works.md)
+[**Run locally**](#run-locally) · [**Deploy to AWS**](#deploy-to-aws-ec2) · [**Azure**](#deploy-to-azure) · [**Railway**](#deploy-to-railway) · [**Fly.io**](#deploy-to-flyio) · [**Dokploy**](#deploy-to-dokploy) · [**Coolify**](#deploy-to-coolify) · [**Render**](#deploy-to-render) · [**Any server**](#deploy-to-any-ubuntu-or-debian-server) · [**Add users**](#add-users) · [**Controls**](#controls) · [**Features**](docs/features.md) · [**How it works**](docs/how-it-works.md)
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/AgentSystemLabs/agent-office/main/install.sh | bash
@@ -101,7 +101,7 @@ npm install -g .     # puts `agent-office` on your PATH
 agent-office
 ```
 
-> Only your computer can reach the office: it listens on `127.0.0.1`. `--host 0.0.0.0` lets your network in, but over plain http, where voice and screen sharing don't work. To share the office with a team, put it on a server: [AWS](#deploy-to-aws-ec2), [Azure](#deploy-to-azure), [Railway](#deploy-to-railway), [Fly.io](#deploy-to-flyio), [Dokploy](#deploy-to-dokploy), [Coolify](#deploy-to-coolify) or [any Ubuntu or Debian machine](#deploy-to-any-ubuntu-or-debian-server).
+> Only your computer can reach the office: it listens on `127.0.0.1`. `--host 0.0.0.0` lets your network in, but over plain http, where voice and screen sharing don't work. To share the office with a team, put it on a server: [AWS](#deploy-to-aws-ec2), [Azure](#deploy-to-azure), [Railway](#deploy-to-railway), [Fly.io](#deploy-to-flyio), [Dokploy](#deploy-to-dokploy), [Coolify](#deploy-to-coolify), [Render](#deploy-to-render) or [any Ubuntu or Debian machine](#deploy-to-any-ubuntu-or-debian-server).
 
 ## Deploy to AWS (EC2)
 
@@ -291,6 +291,17 @@ deploy/coolify.sh destroy           # delete the application and its volume (ask
 ```
 
 The details, what's on the volume, and troubleshooting are in [docs/coolify.md](docs/coolify.md).
+
+## Deploy to Render
+
+Unlike Railway, Fly.io, Dokploy and Coolify above, [Render](https://render.com) gives the office a public HTTPS domain for free, so it's reachable directly at `https://<name>.onrender.com`: no SSH tunnel for you or your team, just a password. You need a GitHub repo Render can see (a fork of this one works) and a paid plan (the free one can't mount a persistent disk).
+
+1. On [Render's dashboard](https://dashboard.render.com), **New → Blueprint**, and point it at your repo. It reads [`render.yaml`](render.yaml) and proposes one web service, `agent-office`, on the **Starter** plan with a 10 GB disk at `/data`.
+2. Before deploying, open the service's **Environment** tab and set `AGENT_OFFICE_PASSWORD` (`openssl rand -base64 24` makes a good one). `render.yaml` leaves it blank on purpose: with no SSH session to read a generated password back from, [`deploy/render/start.sh`](deploy/render/start.sh) refuses to start without one instead of locking you out.
+3. Deploy. The first start takes a few minutes: it builds [`deploy/render/Dockerfile`](deploy/render/Dockerfile) (Node 22, git, the GitHub CLI, build tools) and installs Claude Code onto the disk.
+4. Open `https://<name>.onrender.com` and sign in with the password from step 2. Sign in to GitHub with `gh auth login` from a shell at a desk, and Claude from a worker's `/login` — same as any other install, no SSH needed for either.
+
+The details, what's on the disk, and a security note on running without an SSH gate are in [docs/render.md](docs/render.md).
 
 ## Deploy to any Ubuntu or Debian server
 
