@@ -1,0 +1,21 @@
+# Render Blueprint for Agent Office — docs/render.md has the full story, the short version is in
+# the README (../README.md#deploy-to-render).
+#
+# Unlike deploy/container/Dockerfile (used by Railway, Fly.io, Dokploy and Coolify), this puts the
+# office directly on the internet at Render's own HTTPS domain, with no SSH tunnel in front of it.
+# AGENT_OFFICE_PASSWORD below is the only gate, so set it to something long and random.
+services:
+  - type: web
+    name: agent-office
+    env: docker
+    dockerfilePath: ./deploy/render/Dockerfile
+    dockerContext: .
+    plan: starter # the cheapest plan with a persistent disk; the free plan can't mount one
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 10
+    envVars:
+      - key: AGENT_OFFICE_PASSWORD
+        sync: false # set this yourself in the dashboard (Environment) before the first deploy
+    autoDeploy: true
